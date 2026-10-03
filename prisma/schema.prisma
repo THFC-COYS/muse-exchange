@@ -1,0 +1,164 @@
+// Muse Exchange data model v1.
+// Mirrors the shapes in lib/manifest.ts and lib/seed.ts so the swap from
+// seed data to Postgres is mechanical.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum AgentCategory {
+  education
+  business
+  marketing
+  research
+  productivity
+  finance
+}
+
+enum RunStatus {
+  queued
+  running
+  completed
+  failed
+}
+
+enum PayoutStatus {
+  pending
+  paid
+  failed
+}
+
+model Creator {
+  id          String   @id @default(cuid())
+  handle      String   @unique // e.g. "@teachforward"
+  displayName String
+  bio         String   @db.Text
+  location    String?
+  avatarUrl   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  agents         Agent[]
+  payouts        Payout[]
+  runsAsRenter   Run[]    @relation("Renter")
+  clonesAsBuyer  Clone[]  @relation("Buyer")
+  reviewsWritten Review[] @relation("ReviewAuthor")
+  followsGiven    Follow[] @relation("Follower")
+  followsReceived Follow[] @relation("FollowedCreator")
+}
+
+model Agent {
+  id          String @id @default(cuid())
+  slug        String @unique
+  name        String
+  tagline     String
+  description String @db.Text
+  category    AgentCategory
+  version     String @default("1.0.0")
+
+  // The blueprint: the portable core of the manifest spec.
+  systemPrompt       String   @db.Text
+  requiredTools      String[]
+  requiredConnectors String[]
+  demoUrl            String?
+  evalNotes          String?  @db.Text
+
+  // Pricing for the two money rails.
+  rentPerRun Decimal @db.Decimal(10, 2)
+  clonePrice Decimal @db.Decimal(10, 2)
+  currency   String  @default("USD")
+
+  creatorId String
+  creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Denormalized stats, updated by triggers or a worker.
+  runCount      Int     @default(0)
+  cloneCount    Int     @default(0)
+  followerCount Int     @default(0)
+  rating        Decimal @default(0) @db.Decimal(3, 2)
+  ratingCount   Int     @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  runs    Run[]
+  clones  Clone[]
+  reviews Review[]
+  follows Follow[] @relation("FollowedAgent")
+}
+
+model Run {
+  id          String    @id @default(cuid())
+  agentId     String
+  agent       Agent     @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  renterId    String
+  renter      Creator   @relation("Renter", fields: [renterId], references: [id], onDelete: Cascade)
+  status      RunStatus @default(queued)
+  fee         Decimal   @db.Decimal(10, 2)
+  creatorCut  Decimal   @db.Decimal(10, 2) // 70 percent of fee
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([agentId, createdAt])
+  @@index([renterId, createdAt])
+}
+
+model Clone {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  buyerId   String
+  buyer     Creator  @relation("Buyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  price     Decimal  @db.Decimal(10, 2)
+  license   String   @default("standard")
+  createdAt DateTime @default(now())
+
+  @@index([agentId, createdAt])
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  agentId   String
+  agent     Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    Creator  @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  rating    Int // 1 to 5
+  text      String   @db.Text
+  createdAt DateTime @default(now())
+
+  @@unique([agentId, authorId])
+}
+
+model Follow {
+  id         String   @id @default(cuid())
+  followerId String
+  follower   Creator  @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  agentId    String?
+  agent      Agent?   @relation("FollowedAgent", fields: [agentId], references: [id], onDelete: Cascade)
+  creatorId  String?
+  creator    Creator? @relation("FollowedCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([followerId, agentId])
+  @@unique([followerId, creatorId])
+}
+
+model Payout {
+  id              String       @id @default(cuid())
+  creatorId       String
+  creator         Creator      @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  amount          Decimal      @db.Decimal(10, 2)
+  currency        String       @default("USD")
+  status          PayoutStatus @default(pending)
+  periodStart     DateTime
+  periodEnd       DateTime
+  stripeTransferId String?
+  createdAt       DateTime     @default(now())
+
+  @@index([creatorId, status])
+}
