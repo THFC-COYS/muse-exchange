@@ -12,12 +12,12 @@ datasource db {
 }
 
 enum AgentCategory {
+  productivity
   education
   business
   marketing
-  research
-  productivity
-  finance
+  engineering
+  lifestyle
 }
 
 enum RunStatus {
@@ -75,6 +75,9 @@ model Agent {
 
   creatorId String
   creator   Creator @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  // Future MuSe SIM link: the SIM character slug for this agent, if any.
+  simSlug String?
 
   // Denormalized stats, updated by triggers or a worker.
   runCount      Int     @default(0)

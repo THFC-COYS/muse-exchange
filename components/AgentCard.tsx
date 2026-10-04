@@ -1,8 +1,8 @@
 import Link from "next/link";
-import type { SeedAgent } from "@/lib/seed";
+import type { StoreAgent } from "@/lib/store";
 import { formatCompact, formatMoney } from "@/lib/seed";
 
-export default function AgentCard({ agent }: { agent: SeedAgent }) {
+export default function AgentCard({ agent }: { agent: StoreAgent }) {
   return (
     <Link
       href={`/agents/${agent.slug}`}
@@ -49,13 +49,13 @@ export default function AgentCard({ agent }: { agent: SeedAgent }) {
       <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4">
         <div className="text-sm">
           <span className="font-bold text-white">
-            {formatMoney(agent.pricing.rentPerRun, agent.pricing.currency)}
+            {formatMoney(agent.rentPerRun, agent.currency)}
           </span>
           <span className="text-zinc-500">/run</span>
         </div>
         <div className="text-sm">
           <span className="font-bold text-white">
-            {formatMoney(agent.pricing.clonePrice, agent.pricing.currency)}
+            {formatMoney(agent.clonePrice, agent.currency)}
           </span>
           <span className="text-zinc-500"> clone</span>
         </div>

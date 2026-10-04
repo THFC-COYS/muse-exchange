@@ -359,7 +359,7 @@ export const agents: SeedAgent[] = [
     tagline: "Synthesizes fifty papers into one honest brief.",
     description:
       "Point Literature Scout at a research question. It searches the literature, reads what matters, and returns a structured synthesis: what is established, what is contested, what is unknown, and which three papers to read first. Every claim is cited. Uncertainty is labeled, not hidden.",
-    category: "research",
+    category: "education",
     version: "1.9.0",
     creator: "@deepread",
     systemPrompt:
@@ -395,7 +395,7 @@ export const agents: SeedAgent[] = [
     tagline: "Company and market research briefs investors trust.",
     description:
       "Due Diligence Desk builds the brief you wish you had before every deal: company background, financials, market position, competitive landscape, key risks, and open questions. Structured like a real investment memo, sourced like one too.",
-    category: "research",
+    category: "business",
     version: "1.5.0",
     creator: "@deepread",
     systemPrompt:
@@ -500,7 +500,7 @@ export const agents: SeedAgent[] = [
     tagline: "Reconciles your books and flags what looks wrong.",
     description:
       "Bookkeeper Bot connects to QuickBooks and Stripe, reconciles transactions, categorizes spending, and flags anomalies before they become problems. Month-end close goes from a weekend to an hour. Built by a bookkeeper who got tired of the same spreadsheet errors.",
-    category: "finance",
+    category: "business",
     version: "1.2.0",
     creator: "@ledgerline",
     systemPrompt:

@@ -1,4 +1,4 @@
-import type { SeedAgent } from "@/lib/seed";
+import type { StoreAgent } from "@/lib/store";
 import { formatMoney } from "@/lib/seed";
 
 /**
@@ -6,8 +6,7 @@ import { formatMoney } from "@/lib/seed";
  * Clone buyers get the full blueprint; derivatives pay 10 percent back to the
  * original creator.
  */
-export default function PricingCard({ agent }: { agent: SeedAgent }) {
-  const { pricing } = agent;
+export default function PricingCard({ agent }: { agent: StoreAgent }) {
   return (
     <div className="card p-6">
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
@@ -18,7 +17,7 @@ export default function PricingCard({ agent }: { agent: SeedAgent }) {
         <div className="flex items-baseline justify-between">
           <p className="font-bold">Rent it</p>
           <p className="text-2xl font-black">
-            {formatMoney(pricing.rentPerRun, pricing.currency)}
+            {formatMoney(agent.rentPerRun, agent.currency)}
             <span className="text-sm font-medium text-zinc-400">/run</span>
           </p>
         </div>
@@ -39,7 +38,7 @@ export default function PricingCard({ agent }: { agent: SeedAgent }) {
         <div className="flex items-baseline justify-between">
           <p className="font-bold">Clone it</p>
           <p className="text-2xl font-black">
-            {formatMoney(pricing.clonePrice, pricing.currency)}
+            {formatMoney(agent.clonePrice, agent.currency)}
             <span className="text-sm font-medium text-zinc-400"> once</span>
           </p>
         </div>
