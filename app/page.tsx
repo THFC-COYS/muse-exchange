@@ -1,12 +1,7 @@
 import Link from "next/link";
 import AgentCard from "@/components/AgentCard";
-import { agents, creators, formatCompact } from "@/lib/seed";
-
-const featured = [...agents].sort((a, b) => b.runCount - a.runCount).slice(0, 6);
-
-const totalRuns = agents.reduce((n, a) => n + a.runCount, 0);
-const avgRating =
-  Math.round((agents.reduce((n, a) => n + a.rating, 0) / agents.length) * 10) / 10;
+import { listAgents, listCreators } from "@/lib/store";
+import { formatCompact } from "@/lib/seed";
 
 const steps = [
   {
@@ -26,7 +21,17 @@ const steps = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const agents = await listAgents();
+  const creators = await listCreators();
+  const featured = [...agents].sort((a, b) => b.runCount - a.runCount).slice(0, 6);
+
+  const totalRuns = agents.reduce((n, a) => n + a.runCount, 0);
+  const avgRating =
+    agents.length === 0
+      ? 0
+      : Math.round((agents.reduce((n, a) => n + a.rating, 0) / agents.length) * 10) / 10;
+
   return (
     <div>
       {/* HERO */}

@@ -3,24 +3,39 @@ import { notFound } from "next/navigation";
 import PricingCard from "@/components/PricingCard";
 import AgentCard from "@/components/AgentCard";
 import {
-  agents,
   getAgentBySlug,
   getAgentsByCreator,
-  getCreatorByHandle,
-  formatCompact,
-  formatMoney,
-} from "@/lib/seed";
+  isDatabaseLive,
+} from "@/lib/store";
+import { formatCompact, formatMoney } from "@/lib/seed";
+import { getGuestHandle } from "@/lib/identity";
+import {
+  FollowButton,
+  ReviewForm,
+  ManifestButton,
+} from "./AgentInteractions";
+import { agentFollowStatus } from "./actions";
 
-export function generateStaticParams() {
-  return agents.map((a) => ({ slug: a.slug }));
-}
+export const dynamic = "force-dynamic";
 
-export default function AgentPage({ params }: { params: { slug: string } }) {
-  const agent = getAgentBySlug(params.slug);
+export default async function AgentPage({
+  params,
+}: {
+  params: { slug: string };
+}) {
+  const agent = await getAgentBySlug(params.slug);
   if (!agent) notFound();
 
-  const creator = getCreatorByHandle(agent.creator);
-  const siblings = getAgentsByCreator(agent.creator).filter(
+  const dbLive = await isDatabaseLive();
+  let guestHandle: string | null = null;
+  try {
+    guestHandle = await getGuestHandle();
+  } catch {
+    guestHandle = null;
+  }
+  const following = await agentFollowStatus(params.slug, guestHandle);
+
+  const siblings = (await getAgentsByCreator(agent.creator)).filter(
     (a) => a.slug !== agent.slug
   );
 
@@ -52,17 +67,15 @@ export default function AgentPage({ params }: { params: { slug: string } }) {
             {agent.name}
           </h1>
           <p className="mt-3 text-xl text-zinc-400">{agent.tagline}</p>
-          {creator && (
-            <p className="mt-4 text-sm text-zinc-500">
-              by{" "}
-              <Link
-                href={`/creators/${creator.handle.slice(1)}`}
-                className="font-semibold text-zinc-200 transition hover:text-white"
-              >
-                {creator.displayName} ({creator.handle})
-              </Link>
-            </p>
-          )}
+          <p className="mt-4 text-sm text-zinc-500">
+            by{" "}
+            <Link
+              href={`/creators/${agent.creator.slice(1)}`}
+              className="font-semibold text-zinc-200 transition hover:text-white"
+            >
+              {agent.creatorDisplayName} ({agent.creator})
+            </Link>
+          </p>
 
           <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
             {stats.map((s) => (
@@ -144,9 +157,14 @@ export default function AgentPage({ params }: { params: { slug: string } }) {
             </h2>
             <div className="mt-6 space-y-4">
               {agent.reviews.map((r) => (
-                <div key={r.author + r.date} className="card p-6">
+                <div key={r.id} className="card p-6">
                   <div className="flex items-center justify-between">
-                    <p className="font-bold text-cyan-300">{r.author}</p>
+                    <p className="font-bold text-cyan-300">
+                      {r.author}{" "}
+                      <span className="font-normal text-zinc-500">
+                        {r.authorHandle}
+                      </span>
+                    </p>
                     <p className="text-sm text-zinc-500">
                       <span className="font-bold text-amber-300">★ {r.rating}</span>{" "}
                       · {r.date}
@@ -155,6 +173,14 @@ export default function AgentPage({ params }: { params: { slug: string } }) {
                   <p className="mt-3 leading-relaxed text-zinc-300">{r.text}</p>
                 </div>
               ))}
+              {agent.reviews.length === 0 && (
+                <p className="text-sm text-zinc-500">
+                  No reviews yet. Be the first.
+                </p>
+              )}
+            </div>
+            <div className="mt-6">
+              <ReviewForm slug={agent.slug} dbLive={dbLive} />
             </div>
           </div>
         </div>
@@ -162,24 +188,38 @@ export default function AgentPage({ params }: { params: { slug: string } }) {
         {/* SIDEBAR */}
         <div className="space-y-6 lg:sticky lg:top-24 lg:self-start">
           <PricingCard agent={agent} />
-          {creator && (
-            <div className="card p-6">
-              <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                Creator
-              </p>
-              <p className="mt-3 text-lg font-bold">{creator.displayName}</p>
-              <p className="text-sm text-cyan-300">{creator.handle}</p>
-              <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-                {creator.bio.split(".")[0]}.
-              </p>
-              <Link
-                href={`/creators/${creator.handle.slice(1)}`}
-                className="mt-4 inline-block text-sm font-bold text-white transition hover:text-violet-300"
+          <div className="card space-y-3 p-6">
+            <FollowButton
+              slug={agent.slug}
+              initialFollowing={following}
+              initialCount={agent.followerCount}
+              dbLive={dbLive}
+            />
+            <ManifestButton slug={agent.slug} name={agent.name} />
+            {agent.demoUrl && (
+              <a
+                href={agent.demoUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="block w-full rounded-full border border-white/20 px-5 py-2.5 text-center text-sm font-bold transition hover:bg-white/5"
               >
-                View profile →
-              </Link>
-            </div>
-          )}
+                Watch the demo
+              </a>
+            )}
+          </div>
+          <div className="card p-6">
+            <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              Creator
+            </p>
+            <p className="mt-3 text-lg font-bold">{agent.creatorDisplayName}</p>
+            <p className="text-sm text-cyan-300">{agent.creator}</p>
+            <Link
+              href={`/creators/${agent.creator.slice(1)}`}
+              className="mt-4 inline-block text-sm font-bold text-white transition hover:text-violet-300"
+            >
+              View profile →
+            </Link>
+          </div>
         </div>
       </div>
 
@@ -198,9 +238,9 @@ export default function AgentPage({ params }: { params: { slug: string } }) {
 
       {/* rent math footnote */}
       <p className="mt-12 text-center text-xs text-zinc-600">
-        Renting at {formatMoney(agent.pricing.rentPerRun, agent.pricing.currency)}
+        Renting at {formatMoney(agent.rentPerRun, agent.currency)}
         /run sends{" "}
-        {formatMoney(agent.pricing.rentPerRun * 0.7, agent.pricing.currency)} to
+        {formatMoney(agent.rentPerRun * 0.7, agent.currency)} to
         the creator, every time.
       </p>
     </div>
