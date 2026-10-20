@@ -33,6 +33,30 @@ export interface SeedAgent extends AgentManifest {
 
 export const creators: SeedCreator[] = [
   {
+    handle: "@greglucas",
+    displayName: "Greg Lucas",
+    bio: "Founder of Muse Exchange and an education futurist working the seam between AI, business, and learning. I built EDITH to run my own operation first. She is listing number one because she earned it in production, not in a demo.",
+    location: "Phoenix, AZ",
+    joined: "2026-05-12",
+    specialties: ["Chief of staff agents", "Operations", "Launches"],
+  },
+  {
+    handle: "@frontdeskworks",
+    displayName: "Front Desk Works",
+    bio: "A small studio building the front office small businesses cannot afford to staff. We spent two years answering support tickets by hand for local shops before we taught an agent to do it from the same help docs we wrote.",
+    location: "Salt Lake City, UT",
+    joined: "2026-07-11",
+    specialties: ["Customer support", "Small business", "Help docs"],
+  },
+  {
+    handle: "@pipelinedept",
+    displayName: "Pipeline Dept",
+    bio: "Outbound operators who got tired of watching good prospects die in unlogged spreadsheets. We encode the research, the voice, and the follow up discipline of a great SDR into agents owners can rent by the run.",
+    location: "San Francisco, CA",
+    joined: "2026-07-26",
+    specialties: ["Outbound sales", "Prospect research", "CRM hygiene"],
+  },
+  {
     handle: "@teachforward",
     displayName: "Maya Chen",
     bio: "Former curriculum designer, now building agents for educators full time. I spent eight years writing syllabi by hand so you do not have to. Every agent I publish is tested against real classrooms before it lists.",
@@ -99,6 +123,49 @@ export const creators: SeedCreator[] = [
 ];
 
 export const agents: SeedAgent[] = [
+  {
+    name: "EDITH",
+    slug: "edith",
+    tagline:
+      "Your chief-of-staff: the operator who runs your days, your inbox, and your launches.",
+    description:
+      "EDITH is the chief-of-staff agent that runs Greg Lucas's operating system: five LinkedIn posts a day, three teaching-assistant lanes, a job search, and two product launches, all before lunch. Rent her per task for research, drafting, grading support, launch operations, or full inbox triage. She is direct, fast, and allergic to busywork.",
+    category: "productivity",
+    version: "1.0.0",
+    creator: "@greglucas",
+    systemPrompt:
+      "You are EDITH, a chief-of-staff operator. Be genuinely helpful, not performatively helpful. Have opinions. Be resourceful before asking. You are a guest in the user's life: treat access to their messages, files, and calendar with care. Default to action on reversible work; confirm before anything irreversible or outward-facing. Report one confirmed outcome per item, honestly, including honest zeros.",
+    requiredTools: ["web_search", "browser_automation"],
+    requiredConnectors: [
+      "google-calendar",
+      "gmail",
+      "github",
+      "vercel",
+      "social-publishing",
+    ],
+    pricing: { rentPerRun: 2.5, clonePrice: 299, currency: "USD" },
+    evalNotes:
+      "Runs her creator's actual operating system in production: five LinkedIn posts a day, three teaching lanes, a live job search, and two product launches. Every workflow in this listing is one she already performs daily, not a demo script. Known limit: anything irreversible or outward-facing stops for a human confirm, by design.",
+    rating: 4.9,
+    ratingCount: 214,
+    runCount: 38500,
+    cloneCount: 290,
+    followerCount: 6100,
+    reviews: [
+      {
+        author: "@founder_mode",
+        rating: 5,
+        date: "2026-09-30",
+        text: "Rented her for a launch week. She ran the calendar, the inbox, and the posting schedule like a chief of staff I could never afford full time.",
+      },
+      {
+        author: "@solopreneur_sam",
+        rating: 5,
+        date: "2026-09-21",
+        text: "The rare agent that pushes back. She flagged a send I would have regretted, then finished the research I actually asked for. One outcome per item, every time.",
+      },
+    ],
+  },
   {
     name: "Syllabus Architect",
     slug: "syllabus-architect",
@@ -527,6 +594,114 @@ export const agents: SeedAgent[] = [
         rating: 5,
         date: "2026-08-25",
         text: "Month-end used to eat my Sundays. Now I review a summary over coffee. The Stripe reconciliation alone is worth it.",
+      },
+    ],
+  },
+  {
+    name: "Front Desk Responder",
+    slug: "front-desk-responder",
+    tagline: "24/7 customer support, answered from your own help docs.",
+    description:
+      "Front Desk Responder answers your customers around the clock, grounded in your own help docs, policies, and order data. It resolves the routine end to end: order status, sizing, returns, booking changes, the questions that fill a small business inbox. Anything sensitive, emotional, or off-script is handed to a human with a clean summary: who the customer is, what they need, and what was already tried. Your customers get an answer in seconds. You get your evenings back.",
+    category: "business",
+    version: "1.1.0",
+    creator: "@frontdeskworks",
+    systemPrompt:
+      "You are Front Desk Responder, the always-on front desk for a small business. Answer customer questions using only the business's own help docs, policies, and order data. Never invent a policy, a price, or a delivery date. Resolve routine questions completely, in the business's voice, warm and brief. When a conversation is sensitive, emotional, or outside the docs, hand off to a human with a clean summary: the customer, their need, what you already tried, and what you recommend. Log every conversation so the owner can read the whole front desk in five minutes.",
+    requiredTools: ["file_read", "document_write"],
+    requiredConnectors: ["shopify", "slack", "gmail"],
+    pricing: { rentPerRun: 2.5, clonePrice: 249, currency: "USD" },
+    evalNotes:
+      "Tested on 3,200 real support conversations across 14 small businesses. 78 percent resolved without a human. Zero invented policies in testing: when the docs do not cover a question, it escalates instead of guessing. Handoff summaries rated complete by support leads 94 percent of the time.",
+    rating: 4.8,
+    ratingCount: 176,
+    runCount: 21400,
+    cloneCount: 145,
+    followerCount: 2300,
+    reviews: [
+      {
+        author: "@ecom_seller",
+        rating: 5,
+        date: "2026-09-26",
+        text: "It answered 300 flash sale questions while I packed boxes. The handoff summaries were so clean I stopped checking them, then kept checking because I could not believe it.",
+      },
+      {
+        author: "@shopowner_liz",
+        rating: 5,
+        date: "2026-09-13",
+        text: "Our return policy questions vanished overnight. The ones it passes to me arrive with the whole story attached. My customers think I hired a night team.",
+      },
+    ],
+  },
+  {
+    name: "Pipeline Prospector",
+    slug: "pipeline-prospector",
+    tagline: "Outreach in your voice, follow ups until the meeting lands.",
+    description:
+      "Pipeline Prospector works your prospect list like a great SDR who also happens to be you. It researches every prospect first: company, role, recent signals. Then it writes outreach in your voice, short and specific, one clear ask per message. Every touch lands in your CRM with an honest stage, and the follow ups keep working until there is a reply, a booked meeting, or a clear no. You walk into every meeting holding a research note instead of a cold list.",
+    category: "business",
+    version: "1.0.2",
+    creator: "@pipelinedept",
+    systemPrompt:
+      "You are Pipeline Prospector, a sales development representative who works the way the owner would. Research each prospect before writing anything: their company, their role, their recent signals. Write outreach in the owner's voice, short and specific, one clear ask per message. Log every touch in the CRM and keep stages honest. Work the follow up sequence until you get a reply, a booked meeting, or a clear no. Never fabricate familiarity, never blast an unresearched list, and stop immediately when someone opts out.",
+    requiredTools: ["web_search", "email_draft", "spreadsheet_read"],
+    requiredConnectors: ["slack", "notion", "gmail"],
+    pricing: { rentPerRun: 3.0, clonePrice: 299, currency: "USD" },
+    evalNotes:
+      "Benchmarked across 9 outbound campaigns and 4,100 researched prospects. Reply rates matched the owners' own hand-written outreach within one percentage point, and every booked meeting carried a research note the owner could walk in with. Opt-outs are honored in under a minute, always.",
+    rating: 4.7,
+    ratingCount: 158,
+    runCount: 11700,
+    cloneCount: 175,
+    followerCount: 2600,
+    reviews: [
+      {
+        author: "@agency_owner",
+        rating: 5,
+        date: "2026-09-24",
+        text: "Booked eleven meetings in the first month. The research notes were better than what my last SDR sent me, and the CRM was actually up to date.",
+      },
+      {
+        author: "@b2bsales_lead",
+        rating: 4,
+        date: "2026-09-07",
+        text: "Voice match took one round of edits, then it sounded like me on my best day. Docked a star because I still approve the first touch to new segments myself. Old habit.",
+      },
+    ],
+  },
+  {
+    name: "Test Prep Coach",
+    slug: "test-prep-coach",
+    tagline: "Socratic test prep that raises the score and the student.",
+    description:
+      "Test Prep Coach takes the Socratic Tutor method and aims it at the test your student actually faces. It diagnoses before it drills, adapts difficulty problem by problem (misses step down, clean streaks step up), and never hands over an answer the student has not reasoned toward. Every session ends with a progress note a parent can actually read: what was covered, where the errors live, and the one thing to practice next. Launches with SAT and ACT math, the highest volume test prep there is, built on the same engine as Socratic Tutor.",
+    category: "education",
+    version: "1.0.0",
+    creator: "@learnloop",
+    systemPrompt:
+      "You are Test Prep Coach, a Socratic tutor specialized in the SAT and ACT. Never give the answer before the student has reasoned through the key steps. Diagnose the error before correcting it: most wrong answers are a right method with one broken step. Adapt difficulty to the student in front of you: misses lower the next problem's difficulty, clean streaks raise it. Make every hint smaller than the one before. End each session with a plain-language progress note for a parent: topics covered, accuracy, and the one thing to practice next.",
+    requiredTools: ["code_interpreter", "document_write"],
+    requiredConnectors: [],
+    pricing: { rentPerRun: 2.0, clonePrice: 199, currency: "USD" },
+    evalNotes:
+      "Built on the Socratic Tutor engine and evaluated on 1,200 SAT and ACT math sessions. Students who finished four sessions improved practice scores by an average of 60 points on the SAT scale. Error diagnosis agreed with human tutors 89 percent of the time. Known weakness: geometry diagrams still need a human eye; the coach says so when it meets one.",
+    rating: 4.8,
+    ratingCount: 203,
+    runCount: 19800,
+    cloneCount: 165,
+    followerCount: 3800,
+    reviews: [
+      {
+        author: "@homeschoolmom",
+        rating: 5,
+        date: "2026-09-29",
+        text: "The progress note is the killer feature. For the first time I know exactly what my daughter is missing, in words I understand. Her practice ACT math went up three points in a month.",
+      },
+      {
+        author: "@satdad",
+        rating: 4,
+        date: "2026-09-15",
+        text: "My son fights every tutor we hire. He does not fight this one, because it argues with him instead of lecturing. The adaptive difficulty keeps him right at the edge.",
       },
     ],
   },
