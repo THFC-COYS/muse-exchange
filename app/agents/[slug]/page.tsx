@@ -196,6 +196,12 @@ export default async function AgentPage({
               dbLive={dbLive}
             />
             <ManifestButton slug={agent.slug} name={agent.name} />
+            <Link
+              href={`/agents/${agent.slug}/run`}
+              className="block w-full rounded-full bg-cyan-400 px-5 py-2.5 text-center text-sm font-bold text-ink transition hover:bg-cyan-300"
+            >
+              Try the sample run
+            </Link>
             {agent.demoUrl && (
               <a
                 href={agent.demoUrl}
