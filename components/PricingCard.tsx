@@ -1,13 +1,16 @@
-import type { SeedAgent } from "@/lib/seed";
+import type { StoreAgent } from "@/lib/store";
 import { formatMoney } from "@/lib/seed";
+import CheckoutButton from "./CheckoutButton";
 
 /**
- * The two money rails, side by side. Creators keep 70 percent of every rent.
- * Clone buyers get the full blueprint; derivatives pay 10 percent back to the
- * original creator.
+ * The two money rails, side by side. Both buttons open a real Stripe
+ * Checkout Session via /api/checkout. Creators keep 70 percent of every
+ * sale; the split is recorded on the session and, once a creator has a
+ * Stripe Connect account, settled by Stripe at charge time.
+ * Clone buyers get the full blueprint; derivatives pay 10 percent back to
+ * the original creator.
  */
-export default function PricingCard({ agent }: { agent: SeedAgent }) {
-  const { pricing } = agent;
+export default function PricingCard({ agent }: { agent: StoreAgent }) {
   return (
     <div className="card p-6">
       <p className="text-xs font-bold uppercase tracking-widest text-zinc-500">
@@ -18,7 +21,7 @@ export default function PricingCard({ agent }: { agent: SeedAgent }) {
         <div className="flex items-baseline justify-between">
           <p className="font-bold">Rent it</p>
           <p className="text-2xl font-black">
-            {formatMoney(pricing.rentPerRun, pricing.currency)}
+            {formatMoney(agent.rentPerRun, agent.currency)}
             <span className="text-sm font-medium text-zinc-400">/run</span>
           </p>
         </div>
@@ -26,20 +29,21 @@ export default function PricingCard({ agent }: { agent: SeedAgent }) {
           One task, one run, one small fee. The creator keeps 70 percent of
           every rent.
         </p>
-        <button
-          type="button"
-          title="Rent rail is in test mode"
-          className="mt-4 w-full rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-bold text-ink transition hover:bg-cyan-300"
-        >
-          Run it now
-        </button>
+        <div className="mt-4">
+          <CheckoutButton
+            slug={agent.slug}
+            kind="rent"
+            label="Run it now"
+            className="w-full rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-bold text-ink transition hover:bg-cyan-300"
+          />
+        </div>
       </div>
 
       <div className="mt-4 rounded-xl border border-violet-400/25 bg-violet-400/5 p-5">
         <div className="flex items-baseline justify-between">
           <p className="font-bold">Clone it</p>
           <p className="text-2xl font-black">
-            {formatMoney(pricing.clonePrice, pricing.currency)}
+            {formatMoney(agent.clonePrice, agent.currency)}
             <span className="text-sm font-medium text-zinc-400"> once</span>
           </p>
         </div>
@@ -48,17 +52,19 @@ export default function PricingCard({ agent }: { agent: SeedAgent }) {
           and eval notes. Yours to customize. Derivatives pay 10 percent back
           to the original creator.
         </p>
-        <button
-          type="button"
-          title="Clone rail is in test mode"
-          className="mt-4 w-full rounded-full bg-violet-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-violet-400"
-        >
-          Clone the blueprint
-        </button>
+        <div className="mt-4">
+          <CheckoutButton
+            slug={agent.slug}
+            kind="clone"
+            label="Clone the blueprint"
+            className="w-full rounded-full bg-violet-500 px-5 py-2.5 text-sm font-bold text-white transition hover:bg-violet-400"
+          />
+        </div>
       </div>
 
       <p className="mt-4 text-center text-xs text-zinc-500">
-        Test mode. Payments via Stripe Connect land with M3.
+        Secure checkout via Stripe, in test mode. Every sale splits 70/30:
+        70 percent to the creator, 30 percent to Muse Exchange.
       </p>
     </div>
   );

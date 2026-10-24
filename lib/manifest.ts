@@ -13,12 +13,12 @@
 
 /** Marketplace categories. Keep in sync with the Prisma AgentCategory enum. */
 export const AGENT_CATEGORIES = [
+  "productivity",
   "education",
   "business",
   "marketing",
-  "research",
-  "productivity",
-  "finance",
+  "engineering",
+  "lifestyle",
 ] as const;
 
 export type AgentCategory = (typeof AGENT_CATEGORIES)[number];
@@ -304,4 +304,149 @@ export function validateManifest(input: unknown): ManifestValidation {
   }
 
   return { valid: errors.length === 0, errors };
+}
+
+/* ------------------------------------------------------------------ */
+/* Manifest export (M2). The portable clone-rail payload for M4.        */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Minimal agent shape accepted by agentToManifest. Satisfied by both the
+ * Prisma Agent model (via the store layer) and seed agents.
+ */
+export interface ManifestSource {
+  name: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  category: string;
+  version: string;
+  creator: string;
+  creatorDisplayName?: string;
+  systemPrompt: string;
+  requiredTools: string[];
+  requiredConnectors: string[];
+  rentPerRun: number;
+  clonePrice: number;
+  currency: string;
+  demoUrl?: string | null;
+  evalNotes?: string | null;
+}
+
+/**
+ * The portable manifest payload. This is the exact shape the M4 clone rail
+ * will hand to buyers, so it is frozen as of M2: name, tagline, description,
+ * category, systemPrompt, connectors, pricing { rent, clone }, creator,
+ * version, exportedAt, plus the spec identity fields.
+ */
+export interface ManifestExport {
+  spec: string;
+  specVersion: string;
+  exportedAt: string;
+  name: string;
+  slug: string;
+  tagline: string;
+  description: string;
+  category: string;
+  version: string;
+  creator: string;
+  creatorDisplayName?: string;
+  systemPrompt: string;
+  requiredTools: string[];
+  requiredConnectors: string[];
+  /** Flat connector list for one-line importers: tools + connectors, deduped. */
+  connectors: string[];
+  pricing: {
+    rent: number;
+    clone: number;
+    currency: string;
+  };
+  demoUrl?: string;
+  evalNotes?: string;
+}
+
+function escMd(s: string): string {
+  return s.replace(/`/g, "'");
+}
+
+/**
+ * Serialize any stored agent to the open manifest spec.
+ * Returns both the human-readable markdown and the machine-readable JSON.
+ * Pure function: no database access, safe to call anywhere.
+ */
+export function agentToManifest(source: ManifestSource): {
+  markdown: string;
+  json: ManifestExport;
+} {
+  const connectors = Array.from(
+    new Set([...source.requiredTools, ...source.requiredConnectors])
+  );
+  const exportedAt = new Date().toISOString();
+
+  const json: ManifestExport = {
+    spec: "https://muse.exchange/schemas/agent-manifest-v1.json",
+    specVersion: "1.0.0",
+    exportedAt,
+    name: source.name,
+    slug: source.slug,
+    tagline: source.tagline,
+    description: source.description,
+    category: source.category,
+    version: source.version,
+    creator: source.creator,
+    systemPrompt: source.systemPrompt,
+    requiredTools: [...source.requiredTools],
+    requiredConnectors: [...source.requiredConnectors],
+    connectors,
+    pricing: {
+      rent: source.rentPerRun,
+      clone: source.clonePrice,
+      currency: source.currency,
+    },
+  };
+  if (source.creatorDisplayName) json.creatorDisplayName = source.creatorDisplayName;
+  if (source.demoUrl) json.demoUrl = source.demoUrl;
+  if (source.evalNotes) json.evalNotes = source.evalNotes;
+
+  const lines = [
+    `# ${escMd(source.name)}`,
+    ``,
+    `> ${escMd(source.tagline)}`,
+    ``,
+    `**Category:** ${source.category} · **Version:** ${source.version} · **Creator:** ${source.creator}`,
+    `**Exported:** ${exportedAt}`,
+    ``,
+    `## Description`,
+    ``,
+    escMd(source.description),
+    ``,
+    `## System prompt`,
+    ``,
+    "```",
+    source.systemPrompt,
+    "```",
+    ``,
+    `## Connectors and tools`,
+    ``,
+    ...connectors.map((c) => `- \`${c}\``),
+    ``,
+    `## Pricing`,
+    ``,
+    `- Rent: ${source.rentPerRun} ${source.currency} per run`,
+    `- Clone: ${source.clonePrice} ${source.currency} one-time`,
+    ``,
+  ];
+  if (source.demoUrl) {
+    lines.push(`## Demo`, ``, source.demoUrl, ``);
+  }
+  if (source.evalNotes) {
+    lines.push(`## Eval notes`, ``, escMd(source.evalNotes), ``);
+  }
+  lines.push(
+    `---`,
+    ``,
+    `Exported from Muse Exchange. Spec: https://muse.exchange/schemas/agent-manifest-v1.json`
+  );
+
+  return { markdown: lines.join("\n"), json };
 }

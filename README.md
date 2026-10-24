@@ -22,18 +22,44 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
-### Database (when you are ready)
+### Database (Postgres)
 
-The app currently runs on seed data in `lib/seed.ts`. To wire up Postgres:
+The app runs on seed data in `lib/seed.ts` until `DATABASE_URL` is set. With
+it set, the directory, agent pages, creator pages, publish flow, reviews, and
+follows all read and write Postgres through Prisma.
 
 ```bash
-# .env
+# .env (see .env.example)
 DATABASE_URL="postgresql://user:password@localhost:5432/muse_exchange"
-npx prisma migrate dev
-npx prisma generate
+
+# Create the tables, generate the client, seed agent #1 (EDITH)
+npx prisma migrate dev --name init
+npm run db:seed
 ```
 
-The schema in `prisma/schema.prisma` mirrors the seed shapes, so the swap is mechanical.
+**Vercel Postgres (recommended for deploys):** create a database from the
+Vercel dashboard Storage tab, then add its environment variables to the
+project (or run `vercel env pull .env`). Use the pooled connection string
+(the one with `pgbouncer=true`) for `DATABASE_URL`.
+
+**Neon:** create a project at neon.tech and paste the pooled connection
+string as `DATABASE_URL` (it includes `sslmode=require`).
+
+**Deploying:** on first deploy, run the migration against the production
+database, then seed:
+
+```bash
+npx prisma migrate deploy
+npm run db:seed
+```
+
+Env vars the app needs on Vercel:
+
+| Variable     | Required | What it does                                            |
+| ------------ | -------- | ------------------------------------------------------- |
+| DATABASE_URL | Yes      | Postgres connection string. Without it, the site runs on seed data and the publish flow, reviews, and follows show a setup notice instead of writing. |
+
+No other env vars are needed for M2. Stripe keys arrive with M3.
 
 ### Payments
 
@@ -53,23 +79,28 @@ The manifest is the portable unit of the Exchange. One JSON document describes a
 ```
 app/                Next.js App Router pages
   page.tsx          Landing page
-  directory/        Browse, search, categories, leaderboards
-  agents/[slug]/    Agent profiles with rent/clone pricing
-  creators/[handle]/ Creator profiles
-  publish/          Publish flow with live manifest validation
+  directory/        Browse, search, categories, leaderboards (DB-backed)
+  agents/[slug]/    Agent profiles with reviews, follow, manifest export
+  creators/[handle]/ Creator profiles with earnings and reputation
+  publish/          Publish flow with live manifest validation (writes to DB)
   manifest/         Open spec documentation
+  api/agents/[slug]/manifest  Portable manifest export ({ markdown, json })
 components/         AgentCard, PricingCard, Navbar, Footer
 lib/
-  manifest.ts       The open Agent Manifest spec + validator
-  seed.ts           Seed agents, creators, reviews (until DB lands)
+  manifest.ts       The open Agent Manifest spec + validator + agentToManifest()
+  seed.ts           Seed agents, creators, reviews (fallback when no DATABASE_URL)
+  store.ts          Unified data access: Postgres first, seed fallback
+  db.ts             Prisma client singleton
+  identity.ts       Guest identity for follows/reviews (pre-auth)
 prisma/
-  schema.prisma     Postgres data model
+  schema.prisma     Postgres data model (Agent, Creator, Review, Follow, ...)
+  seed.ts           Seeds exactly one featured agent: EDITH (@greglucas)
 ```
 
 ## Milestones
 
 - **M1:** Public repo, scaffold, landing page live.
-- **M2:** Publish flow + directory + profiles.
+- **M2:** Publish flow + directory + profiles. Database-backed publish, reviews, and follows; manifest export API; EDITH seeded as agent #1.
 - **M3:** Rent rail with Stripe test payouts.
 - **M4:** Clone rail with blueprint export.
 - **M5:** The demo: a small business hires a 10-agent workforce in 60 seconds, filmed for LinkedIn.
